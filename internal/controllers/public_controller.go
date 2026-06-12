@@ -46,7 +46,7 @@ type createOrderRequest struct {
 	CustomerEmail string `json:"customer_email" validate:"required,email,max=180"`
 	CustomerPhone string `json:"customer_phone" validate:"required,min=8,max=30"`
 	TicketID      string `json:"ticket_id" validate:"required"`
-	Quantity      int    `json:"quantity" validate:"required,gte=1"`
+	Quantity      int    `json:"quantity" validate:"required,gte=1,lte=100"`
 	VisitDate     string `json:"visit_date" validate:"required"`
 }
 
@@ -67,6 +67,10 @@ func (ctl *PublicController) CreateOrder(c *gin.Context) {
 	}
 	if visitDate.Before(time.Now().Truncate(24 * time.Hour)) {
 		utils.BadRequest(c, "Visit date cannot be in the past.", nil)
+		return
+	}
+	if visitDate.After(time.Now().AddDate(0, 6, 0)) {
+		utils.BadRequest(c, "Visit date cannot be more than 6 months in advance.", nil)
 		return
 	}
 

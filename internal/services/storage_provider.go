@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"yoyo-server/internal/config"
 
@@ -30,6 +31,9 @@ func NewLocalStorageProvider(uploadDir string) *LocalStorageProvider {
 }
 
 func (p *LocalStorageProvider) Save(ctx context.Context, key string, body io.Reader, contentType string) (string, error) {
+	if containsPathTraversal(key) {
+		return "", fmt.Errorf("invalid file path: %s", key)
+	}
 	fullPath := filepath.Join(p.uploadDir, key)
 	dir := filepath.Dir(fullPath)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -47,6 +51,9 @@ func (p *LocalStorageProvider) Save(ctx context.Context, key string, body io.Rea
 }
 
 func (p *LocalStorageProvider) Delete(ctx context.Context, key string) error {
+	if containsPathTraversal(key) {
+		return fmt.Errorf("invalid file path: %s", key)
+	}
 	return os.Remove(filepath.Join(p.uploadDir, key))
 }
 
@@ -82,7 +89,12 @@ func NewR2StorageProvider(cfg *config.Config) (*R2StorageProvider, error) {
 	}, nil
 }
 
+func (p *R2StorageProvider) Name() string { return "r2" }
+
 func (p *R2StorageProvider) Save(ctx context.Context, key string, body io.Reader, contentType string) (string, error) {
+	if containsPathTraversal(key) {
+		return "", fmt.Errorf("invalid file path: %s", key)
+	}
 	_, err := p.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(p.bucket),
 		Key:         aws.String(key),
@@ -96,6 +108,9 @@ func (p *R2StorageProvider) Save(ctx context.Context, key string, body io.Reader
 }
 
 func (p *R2StorageProvider) Delete(ctx context.Context, key string) error {
+	if containsPathTraversal(key) {
+		return fmt.Errorf("invalid file path: %s", key)
+	}
 	_, err := p.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: aws.String(p.bucket),
 		Key:    aws.String(key),
@@ -103,4 +118,7 @@ func (p *R2StorageProvider) Delete(ctx context.Context, key string) error {
 	return err
 }
 
-func (p *R2StorageProvider) Name() string { return "r2" }
+func containsPathTraversal(key string) bool {
+	clean := filepath.Clean(key)
+	return strings.Contains(clean, "..") || strings.HasPrefix(clean, "/")
+}

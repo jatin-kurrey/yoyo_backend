@@ -39,17 +39,20 @@ func uuidParam(c *gin.Context, name string) (uuid.UUID, bool) {
 func currentAdminID(c *gin.Context) *uuid.UUID {
 	user, ok := middleware.CurrentAdmin(c)
 	if !ok {
-		return nil
+		id := uuid.Nil
+		return &id
 	}
 	return &user.ID
+}
+
+func currentAdminIDPtr(c *gin.Context) *uuid.UUID {
+	return currentAdminID(c)
 }
 
 func handleServiceError(c *gin.Context, err error) {
 	switch {
 	case errors.Is(err, services.ErrInvalidCredentials):
 		utils.Unauthorized(c, "Invalid email or password.")
-	case errors.Is(err, services.ErrInactiveAccount):
-		utils.Forbidden(c, "This admin account is inactive.")
 	case errors.Is(err, services.ErrNotFound):
 		utils.NotFound(c, "The requested resource was not found.", nil)
 	case errors.Is(err, services.ErrInsufficientStock):

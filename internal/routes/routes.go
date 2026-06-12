@@ -39,6 +39,8 @@ func Setup(router *gin.Engine, cfg *config.Config, db *gorm.DB, repos *repositor
 
 	galleryCtl := controllers.NewGalleryController(svc)
 	adminGalleryCtl := controllers.NewAdminGalleryController(svc)
+	attractionCtl := controllers.NewAttractionController(svc)
+	adminAttractionCtl := controllers.NewAdminAttractionController(svc)
 	restaurantCtl := controllers.NewRestaurantController(svc)
 	adminRestaurantCtl := controllers.NewAdminRestaurantController(svc)
 	suiteCtl := controllers.NewSuiteController(svc)
@@ -77,6 +79,7 @@ func Setup(router *gin.Engine, cfg *config.Config, db *gorm.DB, repos *repositor
 	api.GET("/content/:slug", publicCtl.GetContent)
 
 	api.GET("/gallery", galleryCtl.List)
+	api.GET("/attractions", attractionCtl.List)
 	api.GET("/restaurant/items", restaurantCtl.ListItems)
 	api.GET("/suites", suiteCtl.List)
 	api.GET("/suites/:slug", suiteCtl.GetBySlug)
@@ -140,6 +143,12 @@ func Setup(router *gin.Engine, cfg *config.Config, db *gorm.DB, repos *repositor
 	admin.POST("/gallery", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminGalleryCtl.Create)
 	admin.PATCH("/gallery/:id", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminGalleryCtl.Update)
 	admin.DELETE("/gallery/:id", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminGalleryCtl.Delete)
+
+	// Attractions
+	admin.GET("/attractions", adminAttractionCtl.List)
+	admin.POST("/attractions", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminAttractionCtl.Create)
+	admin.PATCH("/attractions/:id", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminAttractionCtl.Update)
+	admin.DELETE("/attractions/:id", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminAttractionCtl.Delete)
 
 	// Restaurant
 	admin.GET("/restaurant/items", adminRestaurantCtl.ListItems)

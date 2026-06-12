@@ -22,6 +22,7 @@ type RestaurantItemInput struct {
 	Description string `json:"description"`
 	ImageURL    string `json:"image_url"`
 	Category    string `json:"category"`
+	IconName    string `json:"icon_name"`
 	Price       int64  `json:"price"`
 	IsFeatured  bool   `json:"is_featured"`
 	SortOrder   int    `json:"sort_order"`
@@ -42,6 +43,7 @@ func (s *RestaurantService) CreateItem(ctx context.Context, input RestaurantItem
 		Description: input.Description,
 		ImageURL:    input.ImageURL,
 		Category:    input.Category,
+		IconName:    input.IconName,
 		Price:       input.Price,
 		IsFeatured:  input.IsFeatured,
 		SortOrder:   input.SortOrder,
@@ -63,6 +65,7 @@ func (s *RestaurantService) UpdateItem(ctx context.Context, id uuid.UUID, input 
 	item.Description = input.Description
 	item.ImageURL = input.ImageURL
 	item.Category = input.Category
+	item.IconName = input.IconName
 	item.Price = input.Price
 	item.IsFeatured = input.IsFeatured
 	item.SortOrder = input.SortOrder

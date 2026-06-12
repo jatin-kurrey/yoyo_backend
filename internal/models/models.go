@@ -90,6 +90,7 @@ type Booking struct {
 	InternalNotes      string         `gorm:"type:text" json:"internal_notes"`
 	CreatedAt          time.Time      `json:"created_at"`
 	UpdatedAt          time.Time      `json:"updated_at"`
+	DeletedAt          gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 type ContactMessage struct {
@@ -121,8 +122,16 @@ type SiteSetting struct {
 	MetaDescription  string         `gorm:"type:text" json:"meta_description"`
 	RazorpayEnabled  bool           `json:"razorpay_enabled"`
 	MaintenanceMode  bool           `json:"maintenance_mode"`
-	FeatureToggles   datatypes.JSON `json:"feature_toggles"`   // map[string]bool (halls, restaurant, gallery, etc)
-	HomepageSections datatypes.JSON `json:"homepage_sections"` // map[string]bool
+	FeatureToggles      datatypes.JSON `json:"feature_toggles"`   // map[string]bool (halls, restaurant, gallery, etc)
+	HomepageSections    datatypes.JSON `json:"homepage_sections"` // map[string]bool
+	AdminSidebarToggles datatypes.JSON `json:"admin_sidebar_toggles"`
+	AboutHeadline       string         `gorm:"size:255" json:"about_headline"`
+	AboutDescription string         `gorm:"type:text" json:"about_description"`
+	AboutVideoURL    string         `gorm:"type:text" json:"about_video_url"`
+	AboutImage1URL   string         `gorm:"type:text" json:"about_image_1_url"`
+	AboutImage2URL   string         `gorm:"type:text" json:"about_image_2_url"`
+	AboutBullets     datatypes.JSON `json:"about_bullets"` // Array of {icon: string, title: string, desc: string}
+	TrustBullets     datatypes.JSON `json:"trust_bullets"` // Array of {icon: string, title: string, desc: string}
 	CreatedAt        time.Time      `json:"created_at"`
 	UpdatedAt        time.Time      `json:"updated_at"`
 }
@@ -200,6 +209,7 @@ type SEOPage struct {
 	SchemaJSON      datatypes.JSON `json:"schema_json"`
 	CreatedAt       time.Time      `json:"created_at"`
 	UpdatedAt       time.Time      `json:"updated_at"`
+	DeletedAt       gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 type GalleryItem struct {
@@ -222,6 +232,7 @@ type RestaurantItem struct {
 	Description string         `gorm:"type:text" json:"description"`
 	ImageURL    string         `gorm:"type:text" json:"image_url"`
 	Category    string         `gorm:"size:100;index" json:"category"`
+	IconName    string         `gorm:"size:100" json:"icon_name"`
 	Price       int64          `json:"price"` // In Paise, optional
 	IsFeatured  bool           `gorm:"not null;default:false" json:"is_featured"`
 	SortOrder   int            `gorm:"not null;default:0" json:"sort_order"`
@@ -235,6 +246,7 @@ type SuiteRoom struct {
 	ID            uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
 	Title         string         `gorm:"size:255;not null" json:"title"`
 	Slug          string         `gorm:"size:255;uniqueIndex;not null" json:"slug"`
+	IconName      string         `gorm:"size:100" json:"icon_name"`
 	Description   string         `gorm:"type:text" json:"description"`
 	ImageURL      string         `gorm:"type:text;not null" json:"image_url"`
 	Gallery       datatypes.JSON `json:"gallery"` // Array of URLs
@@ -265,18 +277,19 @@ type HallPackage struct {
 }
 
 type HallEnquiry struct {
-	ID             uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
-	Name           string    `gorm:"size:255;not null" json:"name"`
-	Phone          string    `gorm:"size:20;not null;index" json:"phone"`
-	Email          string    `gorm:"size:255;index" json:"email"`
-	EventType      string    `gorm:"size:100" json:"event_type"`
-	ExpectedGuests int       `json:"expected_guests"`
-	PreferredDate  time.Time `json:"preferred_date"`
-	Message        string    `gorm:"type:text" json:"message"`
-	Status         string    `gorm:"size:50;not null;default:'new'" json:"status"` // new, contacted, converted, lost
-	Source         string    `gorm:"size:100" json:"source"`
-	CreatedAt      time.Time `json:"created_at"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	ID             uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
+	Name           string         `gorm:"size:255;not null" json:"name"`
+	Phone          string         `gorm:"size:20;not null;index" json:"phone"`
+	Email          string         `gorm:"size:255;index" json:"email"`
+	EventType      string         `gorm:"size:100" json:"event_type"`
+	ExpectedGuests int            `json:"expected_guests"`
+	PreferredDate  time.Time      `json:"preferred_date"`
+	Message        string         `gorm:"type:text" json:"message"`
+	Status         string         `gorm:"size:50;not null;default:'new'" json:"status"`
+	Source         string         `gorm:"size:100" json:"source"`
+	CreatedAt      time.Time      `json:"created_at"`
+	UpdatedAt      time.Time      `json:"updated_at"`
+	DeletedAt      gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 type Offer struct {
@@ -318,3 +331,18 @@ func (m *SuiteRoom) BeforeCreate(tx *gorm.DB) error      { setUUID(&m.ID); retur
 func (m *HallPackage) BeforeCreate(tx *gorm.DB) error    { setUUID(&m.ID); return nil }
 func (m *HallEnquiry) BeforeCreate(tx *gorm.DB) error    { setUUID(&m.ID); return nil }
 func (m *Offer) BeforeCreate(tx *gorm.DB) error          { setUUID(&m.ID); return nil }
+func (m *Attraction) BeforeCreate(tx *gorm.DB) error     { setUUID(&m.ID); return nil }
+
+type Attraction struct {
+	ID          uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
+	Title       string         `gorm:"size:255;not null" json:"title"`
+	Description string         `gorm:"type:text" json:"description"`
+	ImageURL    string         `gorm:"type:text" json:"image_url"`
+	IconName    string         `gorm:"size:100" json:"icon_name"`
+	Tag         string         `gorm:"size:100" json:"tag"`
+	IsActive    bool           `gorm:"not null;default:true" json:"is_active"`
+	SortOrder   int            `gorm:"not null;default:0" json:"sort_order"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+}

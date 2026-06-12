@@ -42,7 +42,7 @@ func (s *AuthService) Login(ctx context.Context, input LoginInput) (*AuthResult,
 		return nil, err
 	}
 	if !user.IsActive {
-		return nil, ErrInactiveAccount
+		return nil, ErrInvalidCredentials
 	}
 	if !utils.CheckPassword(input.Password, user.PasswordHash) {
 		return nil, ErrInvalidCredentials

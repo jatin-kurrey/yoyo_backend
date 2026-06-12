@@ -3,7 +3,12 @@ package services
 import (
 	"context"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
@@ -14,7 +19,10 @@ import (
 	"yoyo-server/internal/repositories"
 
 	"github.com/google/uuid"
+	_ "golang.org/x/image/webp"
 )
+
+const maxImageDimension = 8000
 
 type UploadService struct {
 	cfg      *config.Config
@@ -59,7 +67,33 @@ func (s *UploadService) Save(ctx context.Context, adminID uuid.UUID, fileHeader 
 		return nil, fmt.Errorf("unsupported file type: %s", mimeType)
 	}
 
-	// 4. Generate unique filename
+	// 4. Validate image dimensions
+	if strings.HasPrefix(mimeType, "image/") && mimeType != "image/svg+xml" {
+		if _, err := source.Seek(0, io.SeekStart); err != nil {
+			return nil, err
+		}
+		imgCfg, _, err := image.DecodeConfig(source)
+		if err == nil {
+			if imgCfg.Width > maxImageDimension || imgCfg.Height > maxImageDimension {
+				return nil, fmt.Errorf("image dimensions (%dx%d) exceed maximum allowed (%dx%d)",
+					imgCfg.Width, imgCfg.Height, maxImageDimension, maxImageDimension)
+			}
+		}
+		if _, err := source.Seek(0, io.SeekStart); err != nil {
+			return nil, err
+		}
+	}
+
+	// 5. Sanitize folder path (prevent path traversal)
+	if folder != "" {
+		folder = strings.TrimSpace(folder)
+		folder = strings.Trim(folder, "/")
+		if strings.Contains(folder, "..") || strings.HasPrefix(folder, "/") {
+			return nil, fmt.Errorf("invalid folder path: %s", folder)
+		}
+	}
+
+	// 6. Generate unique filename
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	if ext == "" {
 		if strings.Contains(mimeType, "svg") {
@@ -76,22 +110,24 @@ func (s *UploadService) Save(ctx context.Context, adminID uuid.UUID, fileHeader 
 	fileName := fmt.Sprintf("%s%s", uuid.NewString(), ext)
 	key := fileName
 	if folder != "" {
-		folder = strings.Trim(folder, "/")
 		key = fmt.Sprintf("%s/%s", folder, fileName)
 	}
 
-	// 5. Upload to provider
+	// 7. Upload to provider
 	url, err := s.provider.Save(ctx, key, source, mimeType)
 	if err != nil {
 		return nil, err
 	}
 
-	// 6. Save record to DB
+	// 8. Sanitize original filename for storage
+	safeOriginalName := sanitizeFilename(fileHeader.Filename)
+
+	// 9. Save record to DB
 	asset := &models.MediaAsset{
 		URL:              url,
 		StorageKey:       key,
 		Filename:         fileName,
-		OriginalFilename: fileHeader.Filename,
+		OriginalFilename: safeOriginalName,
 		MimeType:         mimeType,
 		SizeBytes:        fileHeader.Size,
 		StorageProvider:  s.provider.Name(),
@@ -104,7 +140,7 @@ func (s *UploadService) Save(ctx context.Context, adminID uuid.UUID, fileHeader 
 		return nil, err
 	}
 
-	// 7. Audit Log
+	// Audit Log
 	s.audit.Log(ctx, &adminID, "media.upload", "media", map[string]interface{}{
 		"id":     asset.ID,
 		"url":    asset.URL,
@@ -127,7 +163,7 @@ func (s *UploadService) Delete(ctx context.Context, adminID uuid.UUID, id uuid.U
 
 	// Delete from storage
 	if err := s.provider.Delete(ctx, asset.StorageKey); err != nil {
-		fmt.Printf("Warning: Failed to delete file from storage: %v\n", err)
+		log.Printf("Warning: Failed to delete file from storage: %v\n", err)
 	}
 
 	// Delete from DB
@@ -158,4 +194,20 @@ func allowedMimeType(mime string) bool {
 		}
 	}
 	return false
+}
+
+func sanitizeFilename(name string) string {
+	ext := filepath.Ext(name)
+	base := strings.TrimSuffix(name, ext)
+	cleaned := strings.Map(func(r rune) rune {
+		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == ' ' || r == '-' || r == '_' || r == '.' {
+			return r
+		}
+		return '_'
+	}, base)
+	cleaned = strings.TrimSpace(cleaned)
+	if cleaned == "" || cleaned == "." {
+		return "unnamed"
+	}
+	return cleaned + strings.ToLower(ext)
 }

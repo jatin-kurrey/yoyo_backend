@@ -21,6 +21,7 @@ func NewSuiteService(repo *repositories.SuiteRepository, audit *AuditService) *S
 type SuiteInput struct {
 	Title         string         `json:"title" validate:"required"`
 	Slug          string         `json:"slug" validate:"required"`
+	IconName      string         `json:"icon_name"`
 	Description   string         `json:"description"`
 	ImageURL      string         `json:"image_url" validate:"required"`
 	Gallery       datatypes.JSON `json:"gallery"`
@@ -47,6 +48,7 @@ func (s *SuiteService) Create(ctx context.Context, input SuiteInput, adminID uui
 	suite := &models.SuiteRoom{
 		Title:         input.Title,
 		Slug:          input.Slug,
+		IconName:      input.IconName,
 		Description:   input.Description,
 		ImageURL:      input.ImageURL,
 		Gallery:       input.Gallery,
@@ -70,6 +72,7 @@ func (s *SuiteService) Update(ctx context.Context, id uuid.UUID, input SuiteInpu
 	}
 	suite.Title = input.Title
 	suite.Slug = input.Slug
+	suite.IconName = input.IconName
 	suite.Description = input.Description
 	suite.ImageURL = input.ImageURL
 	suite.Gallery = input.Gallery

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -21,6 +22,21 @@ func RateLimit(limit int, window time.Duration) gin.HandlerFunc {
 	var mu sync.Mutex
 	buckets := map[string]*bucket{}
 
+	// Periodic cleanup to prevent memory leak
+	go func() {
+		for {
+			time.Sleep(10 * time.Minute)
+			mu.Lock()
+			now := time.Now()
+			for ip, b := range buckets {
+				if now.After(b.reset) {
+					delete(buckets, ip)
+				}
+			}
+			mu.Unlock()
+		}
+	}()
+
 	return func(c *gin.Context) {
 		now := time.Now()
 		key := c.ClientIP()
@@ -35,6 +51,10 @@ func RateLimit(limit int, window time.Duration) gin.HandlerFunc {
 		remaining := limit - item.count
 		mu.Unlock()
 
+		c.Header("X-RateLimit-Limit", strconv.Itoa(limit))
+		c.Header("X-RateLimit-Remaining", strconv.Itoa(max(0, remaining)))
+		c.Header("X-RateLimit-Reset", strconv.Itoa(int(time.Until(item.reset).Seconds())))
+
 		if remaining < 0 {
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
 				"success": false,
@@ -45,4 +65,11 @@ func RateLimit(limit int, window time.Duration) gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }

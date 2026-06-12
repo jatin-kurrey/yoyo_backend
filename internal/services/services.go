@@ -26,6 +26,7 @@ type Services struct {
 	Halls      *HallService
 	SEO        *SEOService
 	Offers     *OfferService
+	Attractions *AttractionService
 }
 
 func New(cfg *config.Config, db *gorm.DB, repos *repositories.Repositories) *Services {
@@ -62,5 +63,6 @@ func New(cfg *config.Config, db *gorm.DB, repos *repositories.Repositories) *Ser
 		Halls:      NewHallService(repos.Halls, audit),
 		SEO:        NewSEOService(repos.SEO, audit),
 		Offers:     NewOfferService(repos.Offers, audit),
+		Attractions: NewAttractionService(repos.Attractions, audit),
 	}
 }

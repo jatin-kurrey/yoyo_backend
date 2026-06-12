@@ -53,6 +53,7 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 			&models.HallPackage{},
 			&models.HallEnquiry{},
 			&models.Offer{},
+			&models.Attraction{},
 		); err != nil {
 			return nil, err
 		}

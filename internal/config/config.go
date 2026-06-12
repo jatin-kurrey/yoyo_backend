@@ -61,13 +61,13 @@ func Load() (*Config, error) {
 		DBHost:                  getEnv("DB_HOST", "localhost"),
 		DBPort:                  getEnv("DB_PORT", "5432"),
 		DBUser:                  getEnv("DB_USER", "postgres"),
-		DBPassword:              getEnv("DB_PASSWORD", "postgres"),
+		DBPassword:              getEnvRequired("DB_PASSWORD"),
 		DBName:                  getEnv("DB_NAME", "yoyo_booking"),
 		DBSSLMode:               getEnv("DB_SSLMODE", "disable"),
 		CORSAllowedOrigins:      splitCSV(getEnv("CORS_ALLOWED_ORIGINS", "http://localhost:5173")),
 		TrustedProxies:          splitCSV(getEnv("TRUSTED_PROXIES", "")),
-		JWTSecret:               getEnv("JWT_SECRET", "dev-change-this-secret"),
-		JWTAccessTokenTTL:       getDuration("JWT_ACCESS_TOKEN_TTL", 24*time.Hour),
+		JWTSecret:               getEnvRequired("JWT_SECRET"),
+		JWTAccessTokenTTL:       getDuration("JWT_ACCESS_TOKEN_TTL", 15*time.Minute),
 		BcryptCost:              getInt("BCRYPT_COST", 12),
 		AutoMigrate:             getBool("AUTO_MIGRATE", true),
 		RequestBodyLimitBytes:   int64(getInt("REQUEST_BODY_LIMIT_BYTES", 1<<20)),
@@ -93,15 +93,22 @@ func Load() (*Config, error) {
 		R2Region:                getEnv("R2_REGION", "auto"),
 	}
 
+	if cfg.JWTSecret == "" {
+		return nil, fmt.Errorf("JWT_SECRET must be set to a strong value (required in all environments)")
+	}
+	if len(cfg.JWTSecret) < 16 {
+		return nil, fmt.Errorf("JWT_SECRET must be at least 16 characters long")
+	}
+
 	if cfg.AppEnv == "production" {
-		if cfg.JWTSecret == "" || cfg.JWTSecret == "dev-change-this-secret" {
-			return nil, fmt.Errorf("JWT_SECRET must be set to a strong value in production")
-		}
 		if len(cfg.CORSAllowedOrigins) == 0 || cfg.CORSAllowedOrigins[0] == "*" {
 			return nil, fmt.Errorf("CORS_ALLOWED_ORIGINS cannot be wildcard in production")
 		}
 		if cfg.RazorpayEnabled && (cfg.RazorpayKeyID == "" || cfg.RazorpayKeySecret == "") {
 			return nil, fmt.Errorf("Razorpay credentials are required when RAZORPAY_ENABLED=true")
+		}
+		if cfg.RazorpayEnabled && cfg.RazorpayWebhookSecret == "" {
+			return nil, fmt.Errorf("RAZORPAY_WEBHOOK_SECRET must be set when RAZORPAY_ENABLED=true")
 		}
 	}
 
@@ -128,6 +135,14 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func getEnvRequired(key string) string {
+	value := strings.TrimSpace(os.Getenv(key))
+	if value == "" {
+		panic(fmt.Sprintf("required environment variable %s is not set", key))
+	}
+	return value
 }
 
 func getInt(key string, fallback int) int {

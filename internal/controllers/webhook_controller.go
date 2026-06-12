@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"io"
+	"log"
 
 	"yoyo-server/internal/services"
 	"yoyo-server/internal/utils"
@@ -43,10 +44,14 @@ func (ctl *WebhookController) Razorpay(c *gin.Context) {
 			} `json:"payment"`
 		} `json:"payload"`
 	}
-	if err := json.Unmarshal(body, &event); err == nil {
-		if event.Event == "payment.failed" || event.Payload.Payment.Entity.Status == "failed" {
-			_ = ctl.bookings.MarkPaymentFailedByOrder(c.Request.Context(), event.Payload.Payment.Entity.OrderID, event.Payload.Payment.Entity.ID)
-		}
+	if err := json.Unmarshal(body, &event); err != nil {
+		log.Printf("Failed to parse webhook body: %v", err)
+		utils.BadRequest(c, "Invalid webhook payload.", nil)
+		return
+	}
+
+	if event.Event == "payment.failed" || event.Payload.Payment.Entity.Status == "failed" {
+		_ = ctl.bookings.MarkPaymentFailedByOrder(c.Request.Context(), event.Payload.Payment.Entity.OrderID, event.Payload.Payment.Entity.ID)
 	}
 
 	utils.OK(c, "Webhook accepted.", nil)

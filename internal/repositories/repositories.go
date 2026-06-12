@@ -26,6 +26,7 @@ type Repositories struct {
 	Suites     *SuiteRepository
 	Halls      *HallRepository
 	Offers     *OfferRepository
+	Attractions *AttractionRepository
 }
 
 func New(db *gorm.DB) *Repositories {
@@ -44,6 +45,7 @@ func New(db *gorm.DB) *Repositories {
 		Suites:     NewSuiteRepository(db),
 		Halls:      NewHallRepository(db),
 		Offers:     NewOfferRepository(db),
+		Attractions: NewAttractionRepository(db),
 	}
 }
 
@@ -768,4 +770,43 @@ func (r *OfferRepository) FindByID(ctx context.Context, id uuid.UUID) (*models.O
 	var offer models.Offer
 	err := r.db.WithContext(ctx).First(&offer, "id = ?", id).Error
 	return &offer, err
+}
+
+// AttractionRepository
+type AttractionRepository struct {
+	db *gorm.DB
+}
+
+func NewAttractionRepository(db *gorm.DB) *AttractionRepository {
+	return &AttractionRepository{db: db}
+}
+
+func (r *AttractionRepository) ListPublic(ctx context.Context) ([]models.Attraction, error) {
+	var items []models.Attraction
+	err := r.db.WithContext(ctx).Where("is_active = ?", true).Order("sort_order ASC").Find(&items).Error
+	return items, err
+}
+
+func (r *AttractionRepository) ListAdmin(ctx context.Context) ([]models.Attraction, error) {
+	var items []models.Attraction
+	err := r.db.WithContext(ctx).Order("sort_order ASC").Find(&items).Error
+	return items, err
+}
+
+func (r *AttractionRepository) Create(ctx context.Context, item *models.Attraction) error {
+	return r.db.WithContext(ctx).Create(item).Error
+}
+
+func (r *AttractionRepository) Save(ctx context.Context, item *models.Attraction) error {
+	return r.db.WithContext(ctx).Save(item).Error
+}
+
+func (r *AttractionRepository) Delete(ctx context.Context, item *models.Attraction) error {
+	return r.db.WithContext(ctx).Delete(item).Error
+}
+
+func (r *AttractionRepository) FindByID(ctx context.Context, id uuid.UUID) (*models.Attraction, error) {
+	var item models.Attraction
+	err := r.db.WithContext(ctx).First(&item, "id = ?", id).Error
+	return &item, err
 }

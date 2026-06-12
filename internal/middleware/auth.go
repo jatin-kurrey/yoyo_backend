@@ -48,8 +48,14 @@ func RequireRoles(roles ...models.AdminRole) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		role, _ := c.Get("adminRole")
-		if !allowed[role.(string)] {
+		roleRaw, exists := c.Get("adminRole")
+		if !exists {
+			utils.Forbidden(c, "No role assigned. Authentication required.")
+			c.Abort()
+			return
+		}
+		roleStr, ok := roleRaw.(string)
+		if !ok || !allowed[roleStr] {
 			utils.Forbidden(c, "You do not have permission to perform this action.")
 			c.Abort()
 			return
