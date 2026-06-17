@@ -2,8 +2,8 @@ package seeds
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+
 	"yoyo-server/internal/models"
 
 	"gorm.io/datatypes"
