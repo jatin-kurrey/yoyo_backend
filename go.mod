@@ -1,6 +1,8 @@
 module yoyo-server
 
-go 1.24
+go 1.24.0
+
+toolchain go1.24.13
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.41.6
@@ -77,4 +79,7 @@ require (
 replace (
 	golang.org/x/crypto => golang.org/x/crypto v0.31.0
 	golang.org/x/net => golang.org/x/net v0.33.0
+	golang.org/x/sync => golang.org/x/sync v0.10.0
+	golang.org/x/sys => golang.org/x/sys v0.30.0
+	golang.org/x/text => golang.org/x/text v0.22.0
 )
