@@ -32,7 +32,7 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetConnMaxLifetime(30 * time.Minute)
 
-	if cfg.AutoMigrate && cfg.AppEnv != "production" {
+	if cfg.AutoMigrate {
 		if err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`).Error; err != nil {
 			return nil, err
 		}
