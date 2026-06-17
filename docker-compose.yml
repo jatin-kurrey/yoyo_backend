@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: yoyofun-db
+    restart: always
+    environment:
+      POSTGRES_DB: yoyofun_prod
+      POSTGRES_USER: yoyofun_user
+      POSTGRES_PASSWORD: change_this_to_strong_db_password
+    volumes:
+      - yoyo_pgdata:/var/lib/postgresql/data
+    ports:
+      - "5435:5432" # Custom port to avoid conflict with host Postgres
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yoyofun-backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - APP_ENV=production
+      - HOST=0.0.0.0
+      - PORT=8080
+      - DATABASE_URL=postgres://yoyofun_user:change_this_to_strong_db_password@db:5432/yoyofun_prod?sslmode=disable
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=yoyofun_user
+      - DB_PASSWORD=change_this_to_strong_db_password
+      - DB_NAME=yoyofun_prod
+      - DB_SSLMODE=disable
+      - AUTO_MIGRATE=true
+      - CORS_ALLOWED_ORIGINS=https://yoyofun.in,https://www.yoyofun.in
+      - JWT_SECRET=b709b3f0fdb424deb5b98f733db201f5f4e969ad6abec600e02693098affcd2f
+      - ADMIN_NAME=YOYO Super Admin
+      - ADMIN_EMAIL=admin@yoyofun.in
+      - ADMIN_PASSWORD=change_this_to_strong_admin_password
+      - RAZORPAY_ENABLED=true
+      - RAZORPAY_KEY_ID=rzp_live_your_key_id # Put your live Razorpay Key
+      - RAZORPAY_KEY_SECRET=your_razorpay_secret
+      - RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+      - UPLOADS_STORAGE=r2
+      - UPLOAD_DIR=uploads
+      - MAX_UPLOAD_SIZE_BYTES=52428800
+      - R2_ACCOUNT_ID=faa15b2a2e5feeb02ac2283518c601ff
+      - R2_ACCESS_KEY_ID=68e964c4256e852aad9c4757a676cda2
+      - R2_SECRET_ACCESS_KEY=b709b3f0fdb424deb5b98f733db201f5f4e969ad6abec600e02693098affcd2f
+      - R2_BUCKET=yoyo
+      - R2_PUBLIC_BASE_URL=https://pub-dccf7b6c37df47c1939a2f5846425d59.r2.dev
+      - R2_REGION=auto
+    ports:
+      - "9005:8080" # Exposed to host for proxying
+
+volumes:
+  yoyo_pgdata:
