@@ -31,12 +31,22 @@ func main() {
 	repos := repositories.New(db)
 	svc := services.New(cfg, db, repos)
 
-	if len(os.Args) > 1 && os.Args[1] == "seed" {
-		if err := seeds.Run(context.Background(), cfg, db, svc); err != nil {
-			log.Fatal(err)
+	// Command line arguments for database seeds inside Docker
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "seed":
+			if err := seeds.Run(context.Background(), cfg, db, svc); err != nil {
+				log.Fatal(err)
+			}
+			log.Println("Default seed completed")
+			return
+		case "seed_waterpark":
+			if err := seeds.RunWaterpark(context.Background(), db); err != nil {
+				log.Fatal(err)
+			}
+			log.Println("Waterpark seed completed")
+			return
 		}
-		log.Println("seed completed")
-		return
 	}
 
 	if err := svc.Auth.EnsureSuperAdmin(context.Background()); err != nil {
