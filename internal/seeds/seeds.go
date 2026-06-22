@@ -136,7 +136,7 @@ func seedAttractions(ctx context.Context, cfg *config.Config, db *gorm.DB) error
 		},
 		{
 			Title:       "Massive Wave Pool",
-			Description: "Indore's largest wave pool with state-of-the-art ocean tide simulation.",
+			Description: "Bhilai Durg's largest wave pool with state-of-the-art ocean tide simulation.",
 			ImageURL:    "https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=800&auto=format&fit=crop",
 			IconName:    "Waves",
 			Tag:         "Family",
@@ -356,7 +356,7 @@ func seedGallery(ctx context.Context, cfg *config.Config, db *gorm.DB) error {
 			Title:       "Main Wave Pool",
 			Category:    "Water Park",
 			ImageURL:    "https://images.unsplash.com/photo-1582650625119-3a31f8fa2699?q=80&w=1200&auto=format&fit=crop",
-			Description: "Indore's largest ocean tide simulation pool.",
+			Description: "Bhilai Durg's largest ocean tide simulation pool.",
 			SortOrder:   1,
 		},
 		{
@@ -537,7 +537,7 @@ func seedHeroSlides(ctx context.Context, cfg *config.Config, db *gorm.DB) error 
 		SortOrder         int
 	}{
 		{
-			Title:             "Best Water Park in Indore for Family Fun & Kids Safety",
+			Title:             "Best Water Park in Bhilai Durg for Family Fun & Kids Safety",
 			Subtitle:          "Slides, wave pools, kids zone & full-day fun — starting at ₹499",
 			Description:       "Experience the ultimate adrenaline rush with 15+ world-class attractions.",
 			ImageURL:          "https://images.unsplash.com/photo-1708157730402-67cc5b19e335?q=80&w=1600&auto=format&fit=crop",
@@ -550,7 +550,7 @@ func seedHeroSlides(ctx context.Context, cfg *config.Config, db *gorm.DB) error 
 		},
 		{
 			Title:             "Thrilling Slides & Massive Wave Pools Await You",
-			Subtitle:          "Indore's largest wave pool with state-of-the-art ocean tide simulation.",
+			Subtitle:          "Bhilai Durg's largest wave pool with state-of-the-art ocean tide simulation.",
 			Description:       "Experience the ultimate adrenaline rush with 15+ world-class attractions.",
 			ImageURL:          "https://images.unsplash.com/photo-1739295194212-0602c4d1e797?q=80&w=1600&auto=format&fit=crop",
 			CTALabel:          "View Attractions",

@@ -103,7 +103,7 @@ func main() {
 		},
 		{
 			ImageURL:    "https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=1600&auto=format&fit=crop",
-			Title:       "Experience the Ocean in Indore - Massive Wave Pool!",
+			Title:       "Experience the Ocean in Bhilai Durg - Massive Wave Pool!",
 			Subtitle:    "Ride the tides with our world-class wave system. Safe, fun, and purely refreshing.",
 			CTAURL:      "/gallery",
 			CTALabel:     "See All Attractions",
