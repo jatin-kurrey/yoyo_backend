@@ -11,6 +11,16 @@ import (
 )
 
 func RunWaterpark(ctx context.Context, db *gorm.DB) error {
+	// Clean up old location references from the database
+	db.Exec("UPDATE hero_slides SET title = REPLACE(title, 'Indore''s', 'Bhilai Durg''s'), subtitle = REPLACE(subtitle, 'Indore''s', 'Bhilai Durg''s'), description = REPLACE(description, 'Indore''s', 'Bhilai Durg''s')")
+	db.Exec("UPDATE hero_slides SET title = REPLACE(title, 'Indore', 'Bhilai Durg'), subtitle = REPLACE(subtitle, 'Indore', 'Bhilai Durg'), description = REPLACE(description, 'Indore', 'Bhilai Durg')")
+	db.Exec("UPDATE attractions SET title = REPLACE(title, 'Indore''s', 'Bhilai Durg''s'), description = REPLACE(description, 'Indore''s', 'Bhilai Durg''s')")
+	db.Exec("UPDATE attractions SET title = REPLACE(title, 'Indore', 'Bhilai Durg'), description = REPLACE(description, 'Indore', 'Bhilai Durg')")
+	db.Exec("UPDATE gallery_items SET title = REPLACE(title, 'Indore''s', 'Bhilai Durg''s'), description = REPLACE(description, 'Indore''s', 'Bhilai Durg''s')")
+	db.Exec("UPDATE gallery_items SET title = REPLACE(title, 'Indore', 'Bhilai Durg'), description = REPLACE(description, 'Indore', 'Bhilai Durg')")
+	db.Exec("UPDATE tickets SET title = REPLACE(title, 'Indore''s', 'Bhilai Durg''s'), description = REPLACE(description, 'Indore''s', 'Bhilai Durg''s')")
+	db.Exec("UPDATE tickets SET title = REPLACE(title, 'Indore', 'Bhilai Durg'), description = REPLACE(description, 'Indore', 'Bhilai Durg')")
+
 	fmt.Println("Seeding Waterpark Tickets...")
 
 	tickets := []models.Ticket{
