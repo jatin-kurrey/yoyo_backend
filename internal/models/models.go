@@ -17,6 +17,7 @@ const (
 	RoleSuperAdmin AdminRole = "super_admin"
 	RoleAdmin      AdminRole = "admin"
 	RoleModerator  AdminRole = "moderator"
+	RoleStaff      AdminRole = "staff"
 )
 
 const (

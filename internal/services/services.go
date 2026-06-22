@@ -27,6 +27,12 @@ type Services struct {
 	SEO        *SEOService
 	Offers     *OfferService
 	Attractions *AttractionService
+	PMSBookings *PMSBookingService
+	PMSFolio    *PMSBookingsService
+	PMSPOS      *PMSPOSService
+	PMSHK       *PMSHKService
+	PMSPricing  *PMSPricingService
+	PMSDashboard *PMSDashboardService
 }
 
 func New(cfg *config.Config, db *gorm.DB, repos *repositories.Repositories) *Services {
@@ -64,5 +70,11 @@ func New(cfg *config.Config, db *gorm.DB, repos *repositories.Repositories) *Ser
 		SEO:        NewSEOService(repos.SEO, audit),
 		Offers:     NewOfferService(repos.Offers, audit),
 		Attractions: NewAttractionService(repos.Attractions, audit),
+		PMSBookings:  NewPMSBookingService(db),
+		PMSFolio:     NewPMSFolioService(db),
+		PMSPOS:       NewPMSPOSService(db),
+		PMSHK:        NewPMSHKService(db),
+		PMSPricing:   NewPMSPricingService(db),
+		PMSDashboard: NewPMSDashboardService(db),
 	}
 }
