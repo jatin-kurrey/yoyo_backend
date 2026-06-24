@@ -6,6 +6,7 @@ import (
 	"yoyo-server/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type PMSHKController struct {
@@ -17,7 +18,11 @@ func NewPMSHKController(svc *services.PMSHKService) *PMSHKController {
 }
 
 func (ctl *PMSHKController) ListTasks(c *gin.Context) {
-	tasks, err := ctl.svc.ListTasks(c.Request.Context(), c.Query("status"))
+	var assignedToID *uuid.UUID
+	if role, _ := c.Get("adminRole"); role == string(models.RoleHKStaff) {
+		assignedToID = currentAdminID(c)
+	}
+	tasks, err := ctl.svc.ListTasks(c.Request.Context(), c.Query("status"), assignedToID)
 	if err != nil {
 		handleServiceError(c, err)
 		return
@@ -29,6 +34,10 @@ func (ctl *PMSHKController) CreateTask(c *gin.Context) {
 	var input services.CreateHKTaskInput
 	if !bindAndValidate(c, &input) {
 		return
+	}
+	if role, _ := c.Get("adminRole"); role == string(models.RoleHKStaff) {
+		uid := currentAdminID(c)
+		input.AssignedToID = uid
 	}
 	task, err := ctl.svc.CreateTask(c.Request.Context(), input)
 	if err != nil {

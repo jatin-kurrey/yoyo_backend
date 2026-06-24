@@ -19,17 +19,21 @@ func NewPMSHKService(db *gorm.DB) *PMSHKService {
 }
 
 type CreateHKTaskInput struct {
-	RoomID    uuid.UUID        `json:"room_id" validate:"required"`
-	StaffName string           `json:"staff_name"`
-	TaskType  models.HKTaskType `json:"task_type" validate:"required"`
-	Notes     string           `json:"notes"`
+	RoomID       uuid.UUID        `json:"room_id" validate:"required"`
+	StaffName    string           `json:"staff_name"`
+	AssignedToID *uuid.UUID       `json:"assigned_to_id"`
+	TaskType     models.HKTaskType `json:"task_type" validate:"required"`
+	Notes        string           `json:"notes"`
 }
 
-func (s *PMSHKService) ListTasks(ctx context.Context, status string) ([]models.HKTask, error) {
+func (s *PMSHKService) ListTasks(ctx context.Context, status string, assignedToID *uuid.UUID) ([]models.HKTask, error) {
 	var tasks []models.HKTask
 	query := s.db.WithContext(ctx).Preload("Room").Preload("Room.Category")
 	if status != "" {
 		query = query.Where("status = ?", status)
+	}
+	if assignedToID != nil {
+		query = query.Where("assigned_to_id = ?", *assignedToID)
 	}
 	err := query.Order("created_at DESC").Find(&tasks).Error
 	return tasks, err
@@ -37,11 +41,12 @@ func (s *PMSHKService) ListTasks(ctx context.Context, status string) ([]models.H
 
 func (s *PMSHKService) CreateTask(ctx context.Context, input CreateHKTaskInput) (*models.HKTask, error) {
 	task := &models.HKTask{
-		RoomID:    input.RoomID,
-		StaffName: input.StaffName,
-		TaskType:  input.TaskType,
-		Status:    models.HKPending,
-		Notes:     input.Notes,
+		RoomID:       input.RoomID,
+		StaffName:    input.StaffName,
+		AssignedToID: input.AssignedToID,
+		TaskType:     input.TaskType,
+		Status:       models.HKPending,
+		Notes:        input.Notes,
 	}
 	if err := s.db.WithContext(ctx).Create(task).Error; err != nil {
 		return nil, err

@@ -88,3 +88,41 @@ func (s *AuthService) EnsureSuperAdmin(ctx context.Context) error {
 		IsActive:     true,
 	})
 }
+
+func (s *AuthService) EnsureDemoUsers(ctx context.Context) error {
+	demoUsers := []struct {
+		Name  string
+		Email string
+		Role  models.AdminRole
+	}{
+		{Name: "Demo Admin", Email: "admin@yoyo.com", Role: models.RoleAdmin},
+		{Name: "Rajesh Kumar", Email: "rajesh@yoyo.com", Role: models.RoleHKStaff},
+		{Name: "Priya Patel", Email: "priya@yoyo.com", Role: models.RoleBookingStaff},
+	}
+
+	hash, err := utils.HashPassword("admin123", s.cfg.BcryptCost)
+	if err != nil {
+		return err
+	}
+
+	for _, du := range demoUsers {
+		existing, err := s.users.FindByEmail(ctx, du.Email)
+		if err == nil && existing.ID.String() != "" {
+			continue
+		}
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+		err = s.users.Create(ctx, &models.AdminUser{
+			Name:         du.Name,
+			Email:        du.Email,
+			PasswordHash: hash,
+			Role:         du.Role,
+			IsActive:     true,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

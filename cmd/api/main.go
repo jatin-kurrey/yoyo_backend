@@ -53,6 +53,9 @@ func main() {
 	if err := svc.Auth.EnsureSuperAdmin(context.Background()); err != nil {
 		log.Fatal(err)
 	}
+	if err := svc.Auth.EnsureDemoUsers(context.Background()); err != nil {
+		log.Fatal(err)
+	}
 	if _, err := svc.Settings.Get(context.Background()); err != nil {
 		log.Fatal(err)
 	}
@@ -64,13 +67,15 @@ func main() {
 	pmsHKCtl := controllers.NewPMSHKController(svc.PMSHK)
 	pmsPricingCtl := controllers.NewPMSPricingController(svc.PMSPricing)
 	pmsDashboardCtl := controllers.NewPMSDashboardController(svc.PMSDashboard)
+	pmsAccountsCtl := controllers.NewPMSAccountsController(svc.PMSAccounts)
+	pmsSystemCtl := controllers.NewPMSSystemController(svc.PMSSystem)
 
 	router := gin.New()
 	if err := router.SetTrustedProxies(cfg.TrustedProxies); err != nil {
 		log.Fatal(err)
 	}
 	routes.Setup(router, cfg, db, repos, svc)
-	routes.SetupPMSRoutes(router, cfg, repos, pmsBookingCtl, pmsRoomCtl, pmsFolioCtl, pmsPOSCtl, pmsHKCtl, pmsPricingCtl, pmsDashboardCtl)
+	routes.SetupPMSRoutes(router, cfg, repos, pmsBookingCtl, pmsRoomCtl, pmsFolioCtl, pmsPOSCtl, pmsHKCtl, pmsPricingCtl, pmsDashboardCtl, pmsAccountsCtl, pmsSystemCtl)
 
 	log.Printf("YOYO API listening on %s:%s", cfg.Host, cfg.Port)
 	if err := router.Run(cfg.Host + ":" + cfg.Port); err != nil {

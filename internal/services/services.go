@@ -27,12 +27,14 @@ type Services struct {
 	SEO        *SEOService
 	Offers     *OfferService
 	Attractions *AttractionService
-	PMSBookings *PMSBookingService
-	PMSFolio    *PMSBookingsService
-	PMSPOS      *PMSPOSService
-	PMSHK       *PMSHKService
-	PMSPricing  *PMSPricingService
+	PMSBookings  *PMSBookingService
+	PMSFolio     *PMSBookingsService
+	PMSPOS       *PMSPOSService
+	PMSHK        *PMSHKService
+	PMSPricing   *PMSPricingService
 	PMSDashboard *PMSDashboardService
+	PMSAccounts  *PMSAccountsService
+	PMSSystem    *PMSSystemService
 }
 
 func New(cfg *config.Config, db *gorm.DB, repos *repositories.Repositories) *Services {
@@ -76,5 +78,7 @@ func New(cfg *config.Config, db *gorm.DB, repos *repositories.Repositories) *Ser
 		PMSHK:        NewPMSHKService(db),
 		PMSPricing:   NewPMSPricingService(db),
 		PMSDashboard: NewPMSDashboardService(db),
+		PMSAccounts:  NewPMSAccountsService(db),
+		PMSSystem:    NewPMSSystemService(db),
 	}
 }

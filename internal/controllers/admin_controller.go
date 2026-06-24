@@ -309,6 +309,25 @@ func (ctl *AdminController) UpdateUser(c *gin.Context) {
 	utils.OK(c, "Admin user updated.", user)
 }
 
+func (ctl *AdminController) ResetUserPassword(c *gin.Context) {
+	id, ok := uuidParam(c, "id")
+	if !ok {
+		return
+	}
+	var body struct {
+		Password string `json:"password" validate:"required,min=8,max=128"`
+	}
+	if !bindAndValidate(c, &body) {
+		return
+	}
+	user, err := ctl.users.ResetPassword(c.Request.Context(), id, body.Password, currentAdminID(c), c.ClientIP())
+	if err != nil {
+		handleServiceError(c, err)
+		return
+	}
+	utils.OK(c, "Password reset successfully.", map[string]interface{}{"id": user.ID, "name": user.Name, "email": user.Email})
+}
+
 func (ctl *AdminController) DeleteUser(c *gin.Context) {
 	id, ok := uuidParam(c, "id")
 	if !ok {

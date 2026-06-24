@@ -119,9 +119,10 @@ func Setup(router *gin.Engine, cfg *config.Config, db *gorm.DB, repos *repositor
 	admin.PATCH("/settings", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminCtl.UpdateSettings)
 
 	admin.GET("/users", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminCtl.ListUsers)
-	admin.POST("/users", middleware.RequireRoles(models.RoleSuperAdmin), adminCtl.CreateUser)
+	admin.POST("/users", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminCtl.CreateUser)
 	admin.PATCH("/users/:id", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminCtl.UpdateUser)
-	admin.DELETE("/users/:id", middleware.RequireRoles(models.RoleSuperAdmin), adminCtl.DeleteUser)
+	admin.POST("/users/:id/reset-password", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminCtl.ResetUserPassword)
+	admin.DELETE("/users/:id", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminCtl.DeleteUser)
 
 	admin.GET("/audit-logs", middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin), adminCtl.ListAuditLogs)
 	

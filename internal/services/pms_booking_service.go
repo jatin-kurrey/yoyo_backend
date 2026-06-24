@@ -101,7 +101,7 @@ func (s *PMSBookingService) Create(ctx context.Context, input CreatePMSBookingIn
 	return booking, nil
 }
 
-func (s *PMSBookingService) List(ctx context.Context, search string, status string, page, limit int) ([]models.PMSBooking, int64, error) {
+func (s *PMSBookingService) List(ctx context.Context, search string, status string, page, limit int, createdByID *uuid.UUID) ([]models.PMSBooking, int64, error) {
 	var bookings []models.PMSBooking
 	query := s.db.WithContext(ctx).Model(&models.PMSBooking{}).Preload("Room").Preload("Room.Category")
 
@@ -111,6 +111,9 @@ func (s *PMSBookingService) List(ctx context.Context, search string, status stri
 	}
 	if status != "" {
 		query = query.Where("status = ?", status)
+	}
+	if createdByID != nil {
+		query = query.Where("created_by_id = ?", *createdByID)
 	}
 
 	var total int64

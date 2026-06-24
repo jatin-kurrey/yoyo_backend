@@ -14,10 +14,12 @@ type MessageStatus string
 type PaymentStatus string
 
 const (
-	RoleSuperAdmin AdminRole = "super_admin"
-	RoleAdmin      AdminRole = "admin"
-	RoleModerator  AdminRole = "moderator"
-	RoleStaff      AdminRole = "staff"
+	RoleSuperAdmin     AdminRole = "super_admin"
+	RoleAdmin          AdminRole = "admin"
+	RoleModerator      AdminRole = "moderator"
+	RoleStaff          AdminRole = "staff"
+	RoleHKStaff        AdminRole = "hk_staff"
+	RoleBookingStaff   AdminRole = "booking_staff"
 )
 
 const (

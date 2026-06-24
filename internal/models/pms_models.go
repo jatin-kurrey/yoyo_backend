@@ -189,19 +189,53 @@ type POSOrder struct {
 	ServedAt    *time.Time     `json:"served_at"`
 }
 
-type HKTask struct {
+type PMSTransaction struct {
 	ID          uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
-	RoomID      uuid.UUID      `gorm:"type:uuid;not null;index" json:"room_id"`
-	Room        PMSRoom        `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
-	StaffName   string         `gorm:"size:255" json:"staff_name"`
-	TaskType    HKTaskType     `gorm:"size:50;not null" json:"task_type"`
-	Status      HKTaskStatus   `gorm:"size:50;not null;default:'pending'" json:"status"`
-	AssignedAt  *time.Time     `json:"assigned_at"`
-	CompletedAt *time.Time     `json:"completed_at"`
-	Notes       string         `gorm:"type:text" json:"notes"`
+	Date        string         `gorm:"size:20;not null;index" json:"date"`
+	Type        string         `gorm:"size:20;not null;default:'income'" json:"type"` // income, expense
+	Category    string         `gorm:"size:100;not null" json:"category"`
+	Description string         `gorm:"type:text" json:"description"`
+	Amount      int64          `gorm:"not null" json:"amount"`
+	Method      string         `gorm:"size:50;not null" json:"method"`
+	Status      string         `gorm:"size:20;not null;default:'completed'" json:"status"` // completed, pending
+	GuestName   string         `gorm:"size:255" json:"guest_name"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type PMSSetting struct {
+	ID    uuid.UUID `gorm:"type:uuid;primaryKey" json:"id"`
+	Key   string    `gorm:"size:100;uniqueIndex;not null" json:"key"`
+	Value string    `gorm:"type:text;not null" json:"value"`
+}
+
+type PMSRateOverride struct {
+	ID         uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
+	CategoryID uuid.UUID      `gorm:"type:uuid;not null;index" json:"category_id"`
+	Date       string         `gorm:"size:20;not null;index" json:"date"`
+	Plan       string         `gorm:"size:10;not null" json:"plan"`      // ep, cp, ap
+	Rate       int64          `gorm:"not null" json:"rate"`
+	StopSell   bool           `gorm:"not null;default:false" json:"stop_sell"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	DeletedAt  gorm.DeletedAt `gorm:"index" json:"-"`
+}
+
+type HKTask struct {
+	ID           uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
+	RoomID       uuid.UUID      `gorm:"type:uuid;not null;index" json:"room_id"`
+	Room         PMSRoom        `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"-"`
+	StaffName    string         `gorm:"size:255" json:"staff_name"`
+	AssignedToID *uuid.UUID     `gorm:"type:uuid;index" json:"assigned_to_id"`
+	TaskType     HKTaskType     `gorm:"size:50;not null" json:"task_type"`
+	Status       HKTaskStatus   `gorm:"size:50;not null;default:'pending'" json:"status"`
+	AssignedAt   *time.Time     `json:"assigned_at"`
+	CompletedAt  *time.Time     `json:"completed_at"`
+	Notes        string         `gorm:"type:text" json:"notes"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 func (m *PMSRoomCategory) BeforeCreate(tx *gorm.DB) error { setUUID(&m.ID); return nil }
@@ -211,4 +245,7 @@ func (m *FolioEntry) BeforeCreate(tx *gorm.DB) error      { setUUID(&m.ID); retu
 func (m *PMSPayment) BeforeCreate(tx *gorm.DB) error      { setUUID(&m.ID); return nil }
 func (m *POSTable) BeforeCreate(tx *gorm.DB) error        { setUUID(&m.ID); return nil }
 func (m *POSOrder) BeforeCreate(tx *gorm.DB) error        { setUUID(&m.ID); return nil }
+func (m *PMSTransaction) BeforeCreate(tx *gorm.DB) error  { setUUID(&m.ID); return nil }
+func (m *PMSSetting) BeforeCreate(tx *gorm.DB) error       { setUUID(&m.ID); return nil }
+func (m *PMSRateOverride) BeforeCreate(tx *gorm.DB) error  { setUUID(&m.ID); return nil }
 func (m *HKTask) BeforeCreate(tx *gorm.DB) error          { setUUID(&m.ID); return nil }

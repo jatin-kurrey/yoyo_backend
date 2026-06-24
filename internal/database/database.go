@@ -62,6 +62,9 @@ func Connect(cfg *config.Config) (*gorm.DB, error) {
 			&models.POSTable{},
 			&models.POSOrder{},
 			&models.HKTask{},
+			&models.PMSTransaction{},
+			&models.PMSSetting{},
+			&models.PMSRateOverride{},
 		); err != nil {
 			return nil, err
 		}

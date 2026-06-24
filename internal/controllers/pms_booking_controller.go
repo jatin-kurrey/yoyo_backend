@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"yoyo-server/internal/models"
 	"yoyo-server/internal/services"
 	"yoyo-server/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type PMSBookingController struct {
@@ -17,7 +19,11 @@ func NewPMSBookingController(svc *services.PMSBookingService) *PMSBookingControl
 
 func (ctl *PMSBookingController) List(c *gin.Context) {
 	page, limit, _ := utils.ParsePagination(c)
-	bookings, total, err := ctl.svc.List(c.Request.Context(), c.Query("search"), c.Query("status"), page, limit)
+	var createdByID *uuid.UUID
+	if role, _ := c.Get("adminRole"); role == string(models.RoleBookingStaff) {
+		createdByID = currentAdminID(c)
+	}
+	bookings, total, err := ctl.svc.List(c.Request.Context(), c.Query("search"), c.Query("status"), page, limit, createdByID)
 	if err != nil {
 		handleServiceError(c, err)
 		return

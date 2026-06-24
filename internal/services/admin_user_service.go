@@ -24,7 +24,7 @@ type AdminUserInput struct {
 	Name     string           `json:"name" validate:"required,min=2,max=120"`
 	Email    string           `json:"email" validate:"required,email,max=180"`
 	Password string           `json:"password" validate:"omitempty,min=8,max=128"`
-	Role     models.AdminRole `json:"role" validate:"required,oneof=super_admin admin moderator staff"`
+	Role     models.AdminRole `json:"role" validate:"required,oneof=super_admin admin moderator staff hk_staff booking_staff"`
 	IsActive *bool            `json:"is_active"`
 }
 
@@ -91,6 +91,23 @@ func (s *AdminUserService) Update(ctx context.Context, id uuid.UUID, input Admin
 		return nil, err
 	}
 	s.audit.Log(ctx, adminID, "update", "admin_users", map[string]interface{}{"admin_user_id": user.ID}, ip)
+	return user, nil
+}
+
+func (s *AdminUserService) ResetPassword(ctx context.Context, id uuid.UUID, newPassword string, adminID *uuid.UUID, ip string) (*models.AdminUser, error) {
+	user, err := s.Find(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	hash, err := utils.HashPassword(newPassword, s.cfg.BcryptCost)
+	if err != nil {
+		return nil, err
+	}
+	user.PasswordHash = hash
+	if err := s.repo.Save(ctx, user); err != nil {
+		return nil, err
+	}
+	s.audit.Log(ctx, adminID, "reset_password", "admin_users", map[string]interface{}{"admin_user_id": user.ID}, ip)
 	return user, nil
 }
 

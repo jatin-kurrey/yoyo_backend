@@ -10,13 +10,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupPMSRoutes(router *gin.Engine, cfg *config.Config, repos *repositories.Repositories, pmsBookingCtl *controllers.PMSBookingController, pmsRoomCtl *controllers.PMSRoomController, pmsFolioCtl *controllers.PMSFolioController, pmsPOSCtl *controllers.PMSPOSController, pmsHKCtl *controllers.PMSHKController, pmsPricingCtl *controllers.PMSPricingController, pmsDashboardCtl *controllers.PMSDashboardController) {
+func SetupPMSRoutes(router *gin.Engine, cfg *config.Config, repos *repositories.Repositories, pmsBookingCtl *controllers.PMSBookingController, pmsRoomCtl *controllers.PMSRoomController, pmsFolioCtl *controllers.PMSFolioController, pmsPOSCtl *controllers.PMSPOSController, pmsHKCtl *controllers.PMSHKController, pmsPricingCtl *controllers.PMSPricingController, pmsDashboardCtl *controllers.PMSDashboardController, pmsAccountsCtl *controllers.PMSAccountsController, pmsSystemCtl *controllers.PMSSystemController) {
 	pms := router.Group("/api/pms")
 	pms.Use(middleware.AdminAuth(cfg, repos.AdminUsers))
 
 	// ── Staff-level routes (bookings, folio, POS, housekeeping, room view) ──
 	staff := pms.Group("")
-	staff.Use(middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin, models.RoleStaff))
+	staff.Use(middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin, models.RoleStaff, models.RoleHKStaff, models.RoleBookingStaff))
 
 	// Dashboard
 	staff.GET("/dashboard/stats", pmsDashboardCtl.Stats)
@@ -62,4 +62,24 @@ func SetupPMSRoutes(router *gin.Engine, cfg *config.Config, repos *repositories.
 	admin := pms.Group("")
 	admin.Use(middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin))
 	admin.PATCH("/categories/:id/rates", pmsPricingCtl.UpdateRates)
+
+	// ── System administration (super_admin and admin) ──
+	system := pms.Group("")
+	system.Use(middleware.RequireRoles(models.RoleSuperAdmin, models.RoleAdmin))
+	system.GET("/system/stats", pmsSystemCtl.Stats)
+	system.GET("/system/backup", pmsSystemCtl.Backup)
+	system.POST("/system/restore", pmsSystemCtl.Restore)
+	system.POST("/system/reset", pmsSystemCtl.Reset)
+
+	// ── Accounts (transactions, settings, rate overrides) — staff can read, admin can write ──
+	staff.GET("/transactions", pmsAccountsCtl.ListTransactions)
+	staff.POST("/transactions", pmsAccountsCtl.CreateTransaction)
+	admin.DELETE("/transactions/:id", pmsAccountsCtl.DeleteTransaction)
+
+	staff.GET("/settings", pmsAccountsCtl.GetSettings)
+	admin.POST("/settings", pmsAccountsCtl.UpsertSetting)
+
+	staff.GET("/rate-overrides", pmsAccountsCtl.ListRateOverrides)
+	staff.POST("/rate-overrides", pmsAccountsCtl.SetRateOverride)
+	staff.POST("/rate-overrides/clear", pmsAccountsCtl.ClearRateOverride)
 }
