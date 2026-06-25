@@ -36,6 +36,7 @@ services:
       - AUTO_MIGRATE=true
       - CORS_ALLOWED_ORIGINS=https://yoyofun.in,https://www.yoyofun.in,https://admin.yoyofun.in
       - JWT_SECRET=b709b3f0fdb424deb5b98f733db201f5f4e969ad6abec600e02693098affcd2f
+      - JWT_ACCESS_TOKEN_TTL=168h
       - ADMIN_NAME=YOYO Super Admin
       - ADMIN_EMAIL=admin@yoyofun.in
       - ADMIN_PASSWORD=change_this_to_strong_admin_password
