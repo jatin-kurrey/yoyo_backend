@@ -9,6 +9,7 @@ import (
 	"yoyo-server/internal/services"
 	"yoyo-server/internal/utils"
 
+	"github.com/google/uuid"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -48,7 +49,10 @@ func Run(ctx context.Context, cfg *config.Config, db *gorm.DB, svc *services.Ser
 	if err := seedGallery(ctx, cfg, db); err != nil {
 		return err
 	}
-	return seedHallPackages(ctx, cfg, db)
+	if err := seedHallPackages(ctx, cfg, db); err != nil {
+		return err
+	}
+	return seedPMSTables(ctx, db)
 }
 
 func seedTickets(ctx context.Context, cfg *config.Config, db *gorm.DB) error {
@@ -598,6 +602,105 @@ func seedHeroSlides(ctx context.Context, cfg *config.Config, db *gorm.DB) error 
 			return err
 		}
 	}
+	return nil
+}
+
+func seedPMSTables(ctx context.Context, db *gorm.DB) error {
+	var count int64
+	if err := db.WithContext(ctx).Model(&models.PMSRoomCategory{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		categories := []models.PMSRoomCategory{
+			{
+				ID:          uuid.New(),
+				Name:        "Super Deluxe",
+				Slug:        "super-deluxe",
+				Description: "Super Deluxe Rooms",
+				BasePrice:   4000,
+				MaxGuests:   2,
+				IsActive:    true,
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "Family Suite",
+				Slug:        "family-suite",
+				Description: "Family Suite Rooms",
+				BasePrice:   6000,
+				MaxGuests:   4,
+				IsActive:    true,
+			},
+			{
+				ID:          uuid.New(),
+				Name:        "Executive Pack",
+				Slug:        "executive-pack",
+				Description: "Executive Pack Rooms",
+				BasePrice:   8000,
+				MaxGuests:   5,
+				IsActive:    true,
+			},
+		}
+		for i := range categories {
+			if err := db.WithContext(ctx).Create(&categories[i]).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := db.WithContext(ctx).Model(&models.PMSRoom{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		var superDeluxeCat, familySuiteCat, execPackCat models.PMSRoomCategory
+		if err := db.WithContext(ctx).First(&superDeluxeCat, "slug = ?", "super-deluxe").Error; err != nil {
+			return err
+		}
+		if err := db.WithContext(ctx).First(&familySuiteCat, "slug = ?", "family-suite").Error; err != nil {
+			return err
+		}
+		if err := db.WithContext(ctx).First(&execPackCat, "slug = ?", "executive-pack").Error; err != nil {
+			return err
+		}
+
+		rooms := []models.PMSRoom{
+			{ID: uuid.New(), RoomNumber: 101, Floor: 1, CategoryID: superDeluxeCat.ID, Status: "available", CleanStatus: "clean"},
+			{ID: uuid.New(), RoomNumber: 102, Floor: 1, CategoryID: superDeluxeCat.ID, Status: "available", CleanStatus: "dirty"},
+			{ID: uuid.New(), RoomNumber: 103, Floor: 1, CategoryID: superDeluxeCat.ID, Status: "available", CleanStatus: "clean"},
+			{ID: uuid.New(), RoomNumber: 104, Floor: 1, CategoryID: superDeluxeCat.ID, Status: "available", CleanStatus: "clean"},
+			{ID: uuid.New(), RoomNumber: 105, Floor: 1, CategoryID: superDeluxeCat.ID, Status: "available", CleanStatus: "clean"},
+
+			{ID: uuid.New(), RoomNumber: 201, Floor: 2, CategoryID: familySuiteCat.ID, Status: "available", CleanStatus: "clean"},
+			{ID: uuid.New(), RoomNumber: 202, Floor: 2, CategoryID: familySuiteCat.ID, Status: "available", CleanStatus: "clean"},
+			{ID: uuid.New(), RoomNumber: 203, Floor: 2, CategoryID: familySuiteCat.ID, Status: "available", CleanStatus: "dirty"},
+
+			{ID: uuid.New(), RoomNumber: 301, Floor: 3, CategoryID: execPackCat.ID, Status: "available", CleanStatus: "clean"},
+			{ID: uuid.New(), RoomNumber: 302, Floor: 3, CategoryID: execPackCat.ID, Status: "available", CleanStatus: "clean"},
+		}
+		for i := range rooms {
+			if err := db.WithContext(ctx).Create(&rooms[i]).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := db.WithContext(ctx).Model(&models.POSTable{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		for i := 1; i <= 10; i++ {
+			table := models.POSTable{
+				ID:          uuid.New(),
+				TableNumber: i,
+				Capacity:    4,
+				Area:        "Main Dining",
+				Status:      "vacant",
+			}
+			if err := db.WithContext(ctx).Create(&table).Error; err != nil {
+				return err
+			}
+		}
+	}
+
 	return nil
 }
 
