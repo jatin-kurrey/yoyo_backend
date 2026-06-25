@@ -34,7 +34,7 @@ services:
       - DB_NAME=yoyofun_prod
       - DB_SSLMODE=disable
       - AUTO_MIGRATE=true
-      - CORS_ALLOWED_ORIGINS=https://yoyofun.in,https://www.yoyofun.in
+      - CORS_ALLOWED_ORIGINS=https://yoyofun.in,https://www.yoyofun.in,https://admin.yoyofun.in
       - JWT_SECRET=b709b3f0fdb424deb5b98f733db201f5f4e969ad6abec600e02693098affcd2f
       - ADMIN_NAME=YOYO Super Admin
       - ADMIN_EMAIL=admin@yoyofun.in
